@@ -4,11 +4,13 @@ import random
 from collections import deque
 
 from safe_agents.nn.networks import dqn_model
-from safe_agents.agents.base import Agent
 
-class DQNAgent(Agent):
+
+class DQNAgent:
     def __init__(self, env, state_size, action_size):
-        super().__init__(env, state_size, action_size)
+        self.env = env
+        self.state_size = state_size
+        self.action_size = action_size
 
         # These are hyper parameters for the DQN
         self.discount_factor = 0.99
@@ -68,10 +70,13 @@ class DQNAgent(Agent):
             if done[i]:
                 target[i][action[i]] = reward[i]
             else:
-                target[i][action[i]] = reward[i] + self.discount_factor * (np.amax(target_val[i]))
+                target[i][action[i]] = reward[i] + self.discount_factor * (
+                    np.amax(target_val[i])
+                )
 
-        self.model.fit(update_input, target, batch_size=self.batch_size, epochs=1, verbose=0)
-
+        self.model.fit(
+            update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
+        )
 
     def train_agent(self, episodes=1000, render=False):
         scores = []
@@ -80,12 +85,17 @@ class DQNAgent(Agent):
             score = 0
             state = self.env.reset()
             state = np.reshape(state[:-2], [1, self.state_size])
+
             while not done:
-                if render: self.env.render(mode='human')
+                if render:
+                    self.env.render(mode="human")
+
                 # get action for the current state and go one step in environment
                 action = self.get_action(state)
                 next_state, reward, done, info = self.env.step(action)
-                bounds = np.reshape(next_state[-2:], [1, 2]) # seperate safety from other
+                bounds = np.reshape(
+                    next_state[-2:], [1, 2]
+                )  # seperate safety from other
                 next_state = np.reshape(next_state[:-2], [1, self.state_size])
 
                 self.remember(state, action, reward, next_state, done, bounds)
@@ -100,17 +110,27 @@ class DQNAgent(Agent):
                     # every episode, plot the play time
                     score = score if score == 500 else score + 100
                     scores.append(score)
-                    print(f"episode: {e}  | " \
-                          f"score: {score}  | " \
-                          f"memory: {len(self.memory)} | " \
-                          f"epsilon: {self.epsilon}")
+                    print(
+                        f"episode: {e}  | "
+                        f"score: {score}  | "
+                        f"memory: {len(self.memory)} | "
+                        f"epsilon: {self.epsilon}"
+                    )
 
                     # if the mean of scores of last 10 episode is bigger than 490
                     # stop training
-                    if np.mean(scores[-min(10, len(scores)):]) > 490:
+                    if np.mean(scores[-min(10, len(scores)) :]) > 490:
                         return
         return scores
 
     # a bit hacky but ok
     def get_safe_bounds(self):
         return [(i[0][0][-1], i[0][0][-2]) for i in self.memory]
+
+    def save(self, save_loc):
+        if self.model is not None:
+            self.model.save_weights(f"{save_loc}dqn.h2")
+
+    def load(self, save_loc):
+        if self.model is not None:
+            self.model.load_weights(f"{save_loc}dqn.h2")

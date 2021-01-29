@@ -12,9 +12,8 @@ def reject_outliers(data, m=2):
     not_outlier = distance < m * std
     return data[not_outlier]
 
-def plot_visuals(agent, scores):
+def plot_visuals(agent, scores, loc='./results/'):
     name = agent.__class__.__name__ + '#' + str(len(scores))
-    loc = './results/'
     Path(loc).mkdir(parents=True, exist_ok=True)
 
     fig, axs = plt.subplots(ncols=2, figsize=(15, 5))

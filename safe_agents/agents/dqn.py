@@ -21,7 +21,7 @@ class DQNAgent:
         self.train_start = 1000
 
         # create replay memory using deque
-        self.memory = deque(maxlen=2000)
+        self.memory = deque(maxlen=10000)
 
         # create main model and target model
         self.model = dqn_model(state_size, action_size)
@@ -74,12 +74,14 @@ class DQNAgent:
                     np.amax(target_val[i])
                 )
 
-        self.model.fit(
+        history = self.model.fit(
             update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
         )
 
+        return history.history['loss'][0]
+
     def train_agent(self, episodes=1000, render=False):
-        scores = []
+        scores, loss = [], []
         for e in range(episodes):
             done = False
             score = 0
@@ -100,14 +102,13 @@ class DQNAgent:
 
                 self.remember(state, action, reward, next_state, done, bounds)
 
-                self.update_network()
+                loss.append(self.update_network())
                 score += reward
                 state = next_state
 
                 if done:
                     # every episode update the target model to be same with model
                     self.update_target_model()
-                    # every episode, plot the play time
                     score = score if score == 500 else score + 100
                     scores.append(score)
                     print(
@@ -121,7 +122,8 @@ class DQNAgent:
                     # stop training
                     if np.mean(scores[-min(10, len(scores)) :]) > 490:
                         return
-        return scores
+
+        return scores, loss
 
     # a bit hacky but ok
     def get_safe_bounds(self):

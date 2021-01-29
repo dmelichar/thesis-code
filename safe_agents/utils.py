@@ -12,18 +12,23 @@ def reject_outliers(data, m=2):
     not_outlier = distance < m * std
     return data[not_outlier]
 
-def plot_visuals(agent, scores, loc='./results/'):
+def plot_visuals(agent, scores, loss, loc='./results/'):
     name = agent.__class__.__name__ + '#' + str(len(scores))
     Path(loc).mkdir(parents=True, exist_ok=True)
+    sns.set_theme(style="darkgrid")
 
     fig, axs = plt.subplots(ncols=2, figsize=(15, 5))
     scores = reject_outliers(np.array(scores))
-    df = pd.DataFrame([(i, v) for i, v in enumerate(scores)], columns=["episode", "score"])
-    sns.regplot(x="episode", y="score", data=df, robust=True, ci=None, scatter_kws={"s": 10}, ax=axs[0])
+    scoredf = pd.DataFrame([(i, v) for i, v in enumerate(scores)], columns=["episode", "score"])
+    sns.regplot(x="episode", y="score", data=scoredf, robust=True, ci=None, scatter_kws={"s": 10}, ax=axs[0])
     sns.boxplot(scores, showfliers=False, ax=axs[1])
     fig.savefig(loc + name + '-Scores.png', dpi=400)
 
+    lossdf = pd.DataFrame([(i, v) for i, v in enumerate(loss)], columns=["episode", "loss"])
+    sns.displot(lossdf, x="loss", kind="kde")
+    plt.savefig(loc + name + '-Loss.png', dpi=400)
+
     bounds = bounds = agent.get_safe_bounds()
-    df = pd.DataFrame([(abs(v[0]-v[1])) for i, v in enumerate(bounds)], columns=["b"])
-    sns.displot(df, x="b", kind="kde")
+    boundsdf = pd.DataFrame([(abs(v[0]-v[1])) for i, v in enumerate(bounds)], columns=["b"])
+    sns.displot(boundsdf, x="b", kind="kde")
     plt.savefig(loc + name + '-Safety.png', dpi=400)

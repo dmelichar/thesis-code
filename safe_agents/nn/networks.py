@@ -4,10 +4,10 @@ from keras.optimizers import Adam
 from keras import backend as K
 from keras import initializers
 
-def dqn_model(state_size, action_size, learning_rate=0.001):
+def dqn_model(state_size, action_size, learning_rate=0.0001):
     model = Sequential()
-    model.add(Dense(128, input_dim=state_size, activation='relu', kernel_initializer='he_uniform'))
-    model.add(Dense(64, activation='relu', kernel_initializer='he_uniform'))
+    model.add(Dense(64, input_dim=state_size, activation='relu', kernel_initializer='he_uniform'))
+    model.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
     model.add(Dense(action_size, activation='linear', kernel_initializer='he_uniform'))
     #model.summary()
     model.compile(loss='mse', optimizer=Adam(lr=learning_rate))

@@ -47,10 +47,10 @@ def train(env_name: str, agent: str, episodes: int, save_loc: str = "./models/")
     elif agent == "A2C":
         agent = sa.agents.A2CAgent(env, state_size, action_size)
 
-    scores = agent.train_agent(episodes=episodes)
+    scores, loss = agent.train_agent(episodes=episodes)
     agent.save(save_loc=save_loc)
     typer.echo(f"[info] Agent saved to {save_loc}")
-    sa.plot_visuals(agent, scores)
+    sa.plot_visuals(agent, scores, loss)
 
 
 @app.command()

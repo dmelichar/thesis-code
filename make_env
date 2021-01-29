@@ -1,0 +1,5 @@
+#!/bin/bash
+
+conda env create -f env.yml -n $1
+conda run -n $1 ipython kernel install --user --name=$1
+

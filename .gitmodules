@@ -1,0 +1,3 @@
+[submodule "notebooks/safety/gym-safety"]
+	path = notebooks/safety/gym-safety
+	url = https://github.com/jemaw/gym-safety

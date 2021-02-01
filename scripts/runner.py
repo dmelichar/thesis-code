@@ -41,7 +41,7 @@ def train(env_name: str, agent: str, episodes: int, save_loc: str = "./models/")
     elif agent == "DQN":
         agent = sa.agents.DQNAgent(env, state_size, action_size)
     elif agent == "A2C":
-        agent = sa.agents.A2C(env, state_size, action_size)
+        agent = sa.agents.A2CAgent(env, state_size, action_size)
     elif agent == "SafetyController":
         agent = sa.agents.SafetyController(env, state_size, action_size)
 
@@ -57,14 +57,14 @@ def evaluate(env_name: str, agent: str, episodes: int, save_loc: str = "./models
     state_size = env.observation_space.shape[0] - 2
     action_size = env.action_space.n
 
-    agents = sa.agents.__all__b
+    agents = sa.agents.__all__
     if agent not in agents:
         typer.echo(f"Unsupported agent. Available {agents}")
         sys.exit(1)
     elif agent == "DQN":
         agent = sa.agents.DQNAgent(env, state_size, action_size)
     elif agent == "A2C":
-        agent = sa.agents.A2C(env, state_size, action_size)
+        agent = sa.agents.A2CAgent(env, state_size, action_size)
     elif agent == "SafetyController":
         agent = sa.agents.SafetyController(env, state_size, action_size)
 

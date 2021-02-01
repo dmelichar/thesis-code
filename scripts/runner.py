@@ -40,17 +40,15 @@ def train(env_name: str, agent: str, episodes: int, save_loc: str = "./models/")
         sys.exit(1)
     elif agent == "DQN":
         agent = sa.agents.DQNAgent(env, state_size, action_size)
-    elif agent == "PPO":
-        agent = sa.agents.PPOAgent(env, state_size, action_size)
-    elif agent == "SafetyCritic":
-        agent = sa.agents.SafetyCriticAgent(env, state_size, action_size)
     elif agent == "A2C":
-        agent = sa.agents.A2CAgent(env, state_size, action_size)
+        agent = sa.agents.A2C(env, state_size, action_size)
+    elif agent == "SafetyController":
+        agent = sa.agents.SafetyController(env, state_size, action_size)
 
-    scores, loss = agent.train_agent(episodes=episodes)
+    scores, bounds = agent.train(episodes=episodes)
     agent.save(save_loc=save_loc)
     typer.echo(f"[info] Agent saved to {save_loc}")
-    sa.plot_visuals(agent, scores, loss)
+    sa.plot_visuals(agent, scores, bounds)
 
 
 @app.command()
@@ -59,20 +57,18 @@ def evaluate(env_name: str, agent: str, episodes: int, save_loc: str = "./models
     state_size = env.observation_space.shape[0] - 2
     action_size = env.action_space.n
 
-    agents = sa.agents.__all__
+    agents = sa.agents.__all__b
     if agent not in agents:
         typer.echo(f"Unsupported agent. Available {agents}")
         sys.exit(1)
     elif agent == "DQN":
-        agent = sa.DQNAgent(env, state_size, action_size)
-    elif agent == "PPO":
-        agent = sa.PPOAgent(env, state_size, action_size)
-    elif agent == "SafetyCritic":
-        agent = sa.SafetyCriticAgent(env, state_size, action_size)
+        agent = sa.agents.DQNAgent(env, state_size, action_size)
     elif agent == "A2C":
         agent = sa.agents.A2C(env, state_size, action_size)
+    elif agent == "SafetyController":
+        agent = sa.agents.SafetyController(env, state_size, action_size)
 
-    agent.load(filename=f"{save_loc}{str(agent.__class__.__name__)}.h2")
+    agent.load(save_loc=save_loc)
 
     for e in range(episodes):
         done = False

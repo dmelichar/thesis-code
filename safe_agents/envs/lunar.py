@@ -342,7 +342,7 @@ class LunarSafe(gym.Env, EzPickle):
         state.append(b1)
         state.append(b2)
 
-        return np.array(state, dtype=np.float32), reward, done, {}
+        return np.array(state, dtype=np.float64), reward, done, {}
 
     def render(self, mode='human'):
         from gym.envs.classic_control import rendering

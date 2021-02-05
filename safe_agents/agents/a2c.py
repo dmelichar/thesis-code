@@ -5,16 +5,16 @@ from safe_agents.nn.networks import critic_model
 
 
 class A2CAgent:
-    def __init__(self, env, state_size, action_size):
+    def __init__(self, env):
         self.env = env
-        self.state_size = state_size
-        self.action_size = action_size
+        self.state_size = env.observation_space.shape[0] - 1  # minus for safety
+        self.action_size = env.action_space.n
 
         self.discount_factor = 0.99
 
         # create model for policy network
-        self.actor = actor_model(state_size, action_size)
-        self.critic = critic_model(state_size, action_size)
+        self.actor = actor_model(self.state_size, self.action_size)
+        self.critic = critic_model(self.state_size, self.action_size)
 
     def get_action(self, state):
         policy = self.actor.predict(state, batch_size=1).flatten()
@@ -38,12 +38,12 @@ class A2CAgent:
         self.critic.fit(state, target, epochs=1, verbose=0)
 
     def train(self, episodes=300, render=False):
-        scores, bounds = [], []
+        scores, safety = [], []
         for e in range(episodes):
             done = False
             score = 0
             state = env.reset()
-            state = np.reshape(state[:-2], [1, state_size])
+            state = np.reshape(state-1, [1, self.state_size])
 
             while not done:
                 if render:
@@ -51,8 +51,8 @@ class A2CAgent:
 
                 action = self.get_action(state)
                 next_state, reward, done, info = env.step(action)
-                bounds.append(next_state[-2:])  # seperate safety from other
-                next_state = np.reshape(next_state[:-2], [1, state_size])
+                safety.append(state[0][-1])
+                next_state = np.reshape(next_state-1, [1, self.state_size])
                 # if an action make the episode end, then gives penalty of -100
                 reward = reward if not done or score == 499 else -100
 
@@ -76,7 +76,7 @@ class A2CAgent:
                 pass
                 # save the model on episode len
 
-        return scores, bounds
+        return scores, safety
 
     def save(self, save_loc):
         if self.actor is not None and self.critic is not None:
@@ -95,10 +95,7 @@ if __name__ == "__main__":
 
     env = gym.make("LunarSafe-v0")
 
-    state_size = env.observation_space.shape[0] - 2
-    action_size = env.action_space.n
+    agent = A2CAgent(env)
+    scores, safety = agent.train(episodes=15)
 
-    agent = A2CAgent(env, state_size, action_size)
-    scores, bounds = agent.train(episodes=15)
-
-    plot_visuals(agent, scores, bounds)
+    plot_visuals(agent, scores, safety)

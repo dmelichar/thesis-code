@@ -336,11 +336,13 @@ class LunarSafe(gym.Env, EzPickle):
             done = True
             reward = +100
 
-        # distance out of safety bounds. [distance_to_bound1, distance_to_bound2]. negativei means outside. positive means inside
-        b1 = (pos.x - (self.helipad_x1 - VIEWPORT_W/2/10/SCALE))
-        b2 = (pos.x - (self.helipad_x2 + VIEWPORT_W/2/10/SCALE)) * (-1)
-        state.append(b1)
-        state.append(b2)
+        safe = True
+        b1 = ((pos.x - VIEWPORT_W/SCALE/2) + (self.helipad_x1 - VIEWPORT_W/2/10/SCALE))
+        b2 = ((pos.x - VIEWPORT_W/SCALE/2) + (self.helipad_x2 + VIEWPORT_W/2/10/SCALE))
+        if (b1 < 5) or (b2 > 14):
+            safe = False
+
+        state.append(int(safe)) # safe = 1, unsafe = 0
 
         return np.array(state, dtype=np.float64), reward, done, {}
 
@@ -451,11 +453,13 @@ def demo_heuristic_lander(env, seed=None, render=False):
     total_reward = 0
     steps = 0
     s = env.reset()
+    safe_s = []
     while True:
         a = heuristic(env, s)
         #a = env.action_space.sample()
         # do nothing 0, fire left 1, fire main 2, fire right 3
         s, r, done, info = env.step(a)
+        safe_s.append(s[-1])
         total_reward += r
 
         if render:
@@ -467,6 +471,12 @@ def demo_heuristic_lander(env, seed=None, render=False):
             print("step {} total_reward {:+0.2f}".format(steps, total_reward))
         steps += 1
         if done: break
+
+    import matplotlib.pyplot as plt
+    safe_bin = np.array([1 if s == True else 0 for s in safe_s])
+    plt.step(np.arange(0, len(safe_bin)), safe_bin)
+    plt.show()
+
     return total_reward
 
 if __name__ == '__main__':

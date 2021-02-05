@@ -31,30 +31,28 @@ def setup_env(env):
 def train(env_name: str, agent: str, episodes: int, save_loc: str = "./models/"):
     Path(save_loc).mkdir(parents=True, exist_ok=True)
     env = setup_env(env_name)
-    state_size = env.observation_space.shape[0] - 2
-    action_size = env.action_space.n
 
     agents = sa.agents.__all__
     if agent not in agents:
         typer.echo(f"Unsupported agent. Available {agents}")
         sys.exit(1)
     elif agent == "DQN":
-        agent = sa.agents.DQNAgent(env, state_size, action_size)
+        agent = sa.agents.DQNAgent(env)
     elif agent == "A2C":
-        agent = sa.agents.A2CAgent(env, state_size, action_size)
+        agent = sa.agents.A2CAgent(env)
     elif agent == "SafetyController":
-        agent = sa.agents.SafetyController(env, state_size, action_size)
+        agent = sa.agents.SafetyController(env)
 
-    scores, bounds = agent.train(episodes=episodes)
+    scores, safety = agent.train(episodes=episodes)
     agent.save(save_loc=save_loc)
     typer.echo(f"[info] Agent saved to {save_loc}")
-    sa.plot_visuals(agent, scores, bounds)
+    sa.plot_visuals(agent, scores, safety)
 
 
 @app.command()
 def evaluate(env_name: str, agent: str, episodes: int, save_loc: str = "./models/"):
     env = setup_env(env_name)
-    state_size = env.observation_space.shape[0] - 2
+    state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
 
     agents = sa.agents.__all__
@@ -62,11 +60,11 @@ def evaluate(env_name: str, agent: str, episodes: int, save_loc: str = "./models
         typer.echo(f"Unsupported agent. Available {agents}")
         sys.exit(1)
     elif agent == "DQN":
-        agent = sa.agents.DQNAgent(env, state_size, action_size)
+        agent = sa.agents.DQNAgent(env)
     elif agent == "A2C":
-        agent = sa.agents.A2CAgent(env, state_size, action_size)
+        agent = sa.agents.A2CAgent(env)
     elif agent == "SafetyController":
-        agent = sa.agents.SafetyController(env, state_size, action_size)
+        agent = sa.agents.SafetyController(env)
 
     agent.load(save_loc=save_loc)
 
@@ -74,11 +72,10 @@ def evaluate(env_name: str, agent: str, episodes: int, save_loc: str = "./models
         done = False
         score = 0
         state = env.reset()
-        state = np.reshape(state[:-2], [1, state_size])
         while not done:
             env.render(mode="human")
             action = agent.get_action(state)
-            obs, reward, done, info = env.step(action)
+            obs, reward, done, info, safe = env.step(action)
 
 
 if __name__ == "__main__":

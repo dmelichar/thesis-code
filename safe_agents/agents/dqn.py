@@ -9,10 +9,10 @@ import tensorflow as tf
 
 
 class DQNAgent:
-    def __init__(self, env, state_size, action_size, tb=False):
+    def __init__(self, env, tb=False):
         self.env = env
-        self.state_size = state_size
-        self.action_size = action_size
+        self.state_size = env.observation_space.shape[0] - 1 # minus for safety
+        self.action_size = env.action_space.n
 
         # These are hyper parameters for the DQN
         self.discount_factor = 0.99
@@ -32,18 +32,14 @@ class DQNAgent:
             self.tensorboard_callback = None
 
         # create main model and target model
-        self.model = dqn_model(state_size, action_size)
-        self.target_model = dqn_model(state_size, action_size)
+        self.model = dqn_model(self.state_size, self.action_size)
+        self.target_model = dqn_model(self.state_size, self.action_size)
 
         # initialize target model
         self.update_target_model()
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
-
-    def get_safe_bounds(self):
-        return [(i[-1][0][0], i[-1][0][1]) for i in self.memory]
-
 
     def get_action(self, state):
         if np.random.rand() <= self.epsilon:
@@ -52,8 +48,8 @@ class DQNAgent:
             q_value = self.model.predict(state)
             return np.argmax(q_value[0])
 
-    def remember(self, state, action, reward, next_state, done, bounds):
-        self.memory.append((state, action, reward, next_state, done, bounds))
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append((state, action, reward, next_state, done))
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
@@ -96,12 +92,12 @@ class DQNAgent:
             )
 
     def train(self, episodes=1000, render=False):
-        scores = []
+        scores, safety = [], []
         for e in range(episodes):
             done = False
             score = 0
             state = self.env.reset()
-            state = np.reshape(state[:-2], [1, self.state_size])
+            state = np.reshape(state-1, [1, self.state_size])
 
             while not done:
                 if render:
@@ -110,14 +106,13 @@ class DQNAgent:
                 # get action for the current state and go one step in environment
                 action = self.get_action(state)
                 next_state, reward, done, info = self.env.step(action)
-                bounds = np.reshape(
-                    next_state[-2:], [1, 2]
-                )  # seperate safety from other
-                next_state = np.reshape(next_state[:-2], [1, self.state_size])
+                safe = state[0][-1]
+                safety.append(state[0][-1])
+                next_state = np.reshape(next_state-1, [1, self.state_size])
                 # if an action make the episode end, then gives penalty of -100
                 reward = reward if not done or score == 499 else -100
 
-                self.remember(state, action, reward, next_state, done, bounds)
+                self.remember(state, action, reward, next_state, done)
 
                 self.update_network()
                 score += reward
@@ -140,8 +135,7 @@ class DQNAgent:
                     if np.mean(scores[-min(10, len(scores)) :]) > 490:
                         return
 
-        bounds = self.get_safe_bounds()
-        return scores, bounds
+        return scores, safety
 
     def save(self, save_loc):
 
@@ -155,11 +149,9 @@ class DQNAgent:
 if __name__ == '__main__':
     import gym
     env = gym.make('LunarSafe-v0')
-    state_size = env.observation_space.shape[0] - 2
-    action_size = env.action_space.n
-    agent = DQNAgent(env, state_size, action_size)
-    scores, bounds = agent.train(episodes=15)
-    print(bounds)
-    print()
+    agent = DQNAgent(env)
+    scores, safety = agent.train(episodes=15)
     print(scores)
+    print()
+    print(safety)
     print()

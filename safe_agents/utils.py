@@ -14,7 +14,7 @@ def reject_outliers(data, m=2):
     return data[not_outlier]
 
 
-def plot_visuals(agent, scores, bounds, loc="./results/"):
+def plot_visuals(agent, scores, safety, loc="./results/"):
     name = agent.__class__.__name__ + "#" + str(len(scores))
     Path(loc).mkdir(parents=True, exist_ok=True)
     sns.set_theme(style="darkgrid")
@@ -36,9 +36,7 @@ def plot_visuals(agent, scores, bounds, loc="./results/"):
     sns.boxplot(scores, showfliers=False, ax=axs[1])
     fig.savefig(loc + name + "-Scores.png", dpi=400)
 
-    # bounds = agent.get_safe_bounds()
-    boundsdf = pd.DataFrame(
-        [(abs(v[0] - v[1])) for i, v in enumerate(bounds)], columns=["b"]
-    )
-    sns.displot(boundsdf, x="b", kind="kde")
+    fig, axs = plt.subplots(ncols=1)
+    safe_bin = np.array(safety)
+    plt.step(np.arange(0, len(safe_bin)), safe_bin)
     plt.savefig(loc + name + "-Safety.png", dpi=400)

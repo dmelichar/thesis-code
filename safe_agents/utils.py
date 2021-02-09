@@ -3,6 +3,7 @@ import matplotlib
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import itertools
 from pathlib import Path
 
 
@@ -37,6 +38,66 @@ def plot_visuals(agent, scores, safety, loc="./results/"):
     fig.savefig(loc + name + "-Scores.png", dpi=400)
 
     fig, axs = plt.subplots(ncols=1)
-    safe_bin = np.array(safety)
-    plt.step(np.arange(0, len(safe_bin)), safe_bin)
+    labels = 'unsafe', 'safe' # 0=unsafe, 1=safe
+    sizes2 = [safety.count(0), safety.count(1)]
+    plt.pie(x=sizes2, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
     plt.savefig(loc + name + "-Safety.png", dpi=400)
+
+def plot_multi_scores(agents: list, scores: list, loc="./results/"):
+    list_len = len(scores)
+    bins = int(list_len/len(agents))
+    l = []
+    for i in range(len(agents)):
+        for j in range(bins):
+            l.append(agents[i])
+    m = []
+    for i in range(len(agents)):
+        for j in range(bins):
+            m.append(j)
+    data = {"episodes": m,
+        "agent": l,
+        "scores": scores}
+    df = pd.DataFrame.from_dict(data)
+    scores = reject_outliers(np.array(scores))
+    sns.lmplot(
+        x="episodes",
+        y="scores",
+        data=df,
+        hue="agent",
+        scatter_kws={"s": 10},
+        size=7
+    )
+    plt.savefig(loc + 'multi' + str(list_len) + '-Scores.png', dpi=400)
+
+
+def plot_multi_safety(agents: list, loc="./results/"):
+    widths = [2, 3]
+    heights = [2, 2]
+    fig = plt.figure(constrained_layout=True, figsize=(15,8))
+    spec = fig.add_gridspec(ncols=len(agents), nrows=len(agents), width_ratios=widths, height_ratios=heights)
+    agent_v = list(agents.values())
+
+    for row in range(len(agents)):
+        agent_str = str(list(agents.keys())[row])
+        for col in range(len(agents)):
+            ax = fig.add_subplot(spec[row, col])
+            if col == 0:
+                labels = 'unsafe', 'safe'
+                merged = list(itertools.chain.from_iterable(agent_v[row]))
+                sizes = [merged.count(0), merged.count(1)]
+                ax.pie(x=sizes, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+                ax.set_title(agent_str + ' safety piechart')
+            if col == 1:
+                s = [(i.count(0), i.count(1)) for i in agent_v[row]]
+                unsafe = [i[0] for i in s]
+                safe = [i[1] for i in s]
+                labels = [str(i) for i in range(len(agent_v[row]))]
+                x = np.arange(len(labels))  # the label locations
+                width = 0.35  # the width of the bars
+                p1 = ax.bar(x - width/2, unsafe, width, label='unsafe')
+                p2 = ax.bar(x - width/2, safe, width, label='safe')
+                ax.legend()
+                ax.set_title(agent_str + ' time in safe bounds per episode')
+
+    
+    

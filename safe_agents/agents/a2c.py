@@ -7,7 +7,7 @@ from safe_agents.nn.networks import critic_model
 class A2CAgent:
     def __init__(self, env):
         self.env = env
-        self.state_size = env.observation_space.shape[0] - 1  # minus for safety
+        self.state_size = env.observation_space.shape[0] # minus for safety
         self.action_size = env.action_space.n
 
         self.discount_factor = 0.99
@@ -42,8 +42,9 @@ class A2CAgent:
         for e in range(episodes):
             done = False
             score = 0
+            safe_ep = []
             state = env.reset()
-            state = np.reshape(state-1, [1, self.state_size])
+            state = np.reshape(state, [1, self.state_size])
 
             while not done:
                 if render:
@@ -51,10 +52,8 @@ class A2CAgent:
 
                 action = self.get_action(state)
                 next_state, reward, done, info = env.step(action)
-                safety.append(state[0][-1])
-                next_state = np.reshape(next_state-1, [1, self.state_size])
-                # if an action make the episode end, then gives penalty of -100
-                reward = reward if not done or score == 499 else -100
+                safe_ep.append(info['status'])
+                next_state = np.reshape(next_state, [1, self.state_size])
 
                 self.update_network(state, action, reward, next_state, done)
 
@@ -62,8 +61,6 @@ class A2CAgent:
                 state = next_state
 
                 if done:
-                    # every episode, plot the play time
-                    score = score if score == 500.0 else score + 100
                     scores.append(score)
                     print("episode:", e, "  score:", score)
 
@@ -71,11 +68,11 @@ class A2CAgent:
                     # stop training
                     if np.mean(scores[-min(10, len(scores)) :]) > 490:
                         return
-
+            safety.append(safe_ep)
             if e % 50 == 0:
                 pass
                 # save the model on episode len
-
+        
         return scores, safety
 
     def save(self, save_loc):

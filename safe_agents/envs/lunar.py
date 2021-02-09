@@ -99,7 +99,7 @@ class LunarSafe(gym.Env, EzPickle):
         self.prev_reward = None
 
         # useful range is -1 .. +1, but spikes can be higher
-        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(10,), dtype=np.float32)
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(8,), dtype=np.float32)
 
         if self.continuous:
             # Action is two floats [main engine, left-right engines].
@@ -342,9 +342,7 @@ class LunarSafe(gym.Env, EzPickle):
         if (b1 < 5) or (b2 > 14):
             safe = False
 
-        state.append(int(safe)) # safe = 1, unsafe = 0
-
-        return np.array(state, dtype=np.float64), reward, done, {}
+        return np.array(state, dtype=np.float64), reward, done, {'status': int(safe), 'b1': b1, 'b2': b2}
 
     def render(self, mode='human'):
         from gym.envs.classic_control import rendering
@@ -382,7 +380,6 @@ class LunarSafe(gym.Env, EzPickle):
             self.viewer.draw_polygon([(x, flagy2), (x, flagy2-10/SCALE), (x + 25/SCALE, flagy2 - 5/SCALE)], color=(0.8, 0.8, 0))
 
         constraint11x = self.helipad_x1 - VIEWPORT_W/2/10/SCALE
-        #constraint11x = self.helipad_x1 - 60/SCALE
         constraint11y = self.helipad_y
         constraint12x = self.helipad_x1 - VIEWPORT_W/2/10/SCALE
         constraint12y = self.helipad_y + VIEWPORT_H/SCALE
@@ -472,10 +469,10 @@ def demo_heuristic_lander(env, seed=None, render=False):
         steps += 1
         if done: break
 
-    import matplotlib.pyplot as plt
-    safe_bin = np.array([1 if s == True else 0 for s in safe_s])
-    plt.step(np.arange(0, len(safe_bin)), safe_bin)
-    plt.show()
+#    import matplotlib.pyplot as plt
+#    safe_bin = np.array([1 if s == True else 0 for s in safe_s])
+#    plt.step(np.arange(0, len(safe_bin)), safe_bin)
+#    plt.show()
 
     return total_reward
 

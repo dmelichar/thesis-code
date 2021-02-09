@@ -9,9 +9,9 @@ import tensorflow as tf
 
 
 class DQNAgent:
-    def __init__(self, env, tb=False):
+    def __init__(self, env):
         self.env = env
-        self.state_size = env.observation_space.shape[0] - 1 # minus for safety
+        self.state_size = env.observation_space.shape[0]
         self.action_size = env.action_space.n
 
         # These are hyper parameters for the DQN
@@ -25,11 +25,6 @@ class DQNAgent:
         # create replay memory using deque
         self.memory = deque(maxlen=10000)
 
-        if tb:
-            log_dir = "logs/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            self.tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-        else:
-            self.tensorboard_callback = None
 
         # create main model and target model
         self.model = dqn_model(self.state_size, self.action_size)
@@ -82,22 +77,18 @@ class DQNAgent:
                     np.amax(target_val[i])
                 )
 
-        if self.tensorboard_callback is not None:
-            self.model.fit(
-                update_input, target, batch_size=self.batch_size, epochs=1, verbose=0, callbacks=[self.tensorboard_callback]
-            )
-        else:
-            self.model.fit(
+        self.model.fit(
                 update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
-            )
+        )
 
     def train(self, episodes=1000, render=False):
         scores, safety = [], []
         for e in range(episodes):
             done = False
             score = 0
+            safe_ep = []
             state = self.env.reset()
-            state = np.reshape(state-1, [1, self.state_size])
+            state = np.reshape(state, [1, self.state_size])
 
             while not done:
                 if render:
@@ -106,11 +97,8 @@ class DQNAgent:
                 # get action for the current state and go one step in environment
                 action = self.get_action(state)
                 next_state, reward, done, info = self.env.step(action)
-                safe = state[0][-1]
-                safety.append(state[0][-1])
-                next_state = np.reshape(next_state-1, [1, self.state_size])
-                # if an action make the episode end, then gives penalty of -100
-                reward = reward if not done or score == 499 else -100
+                safe_ep.append(info['status'])
+                next_state = np.reshape(next_state, [1, self.state_size])
 
                 self.remember(state, action, reward, next_state, done)
 
@@ -121,7 +109,6 @@ class DQNAgent:
                 if done:
                     # every episode update the target model to be same with model
                     self.update_target_model()
-                    score = score if score == 500 else score + 100
                     scores.append(score)
                     print(
                         f"episode: {e}  | "
@@ -134,7 +121,7 @@ class DQNAgent:
                     # stop training
                     if np.mean(scores[-min(10, len(scores)) :]) > 490:
                         return
-
+            safety.append(safe_ep)
         return scores, safety
 
     def save(self, save_loc):

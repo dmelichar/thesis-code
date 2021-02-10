@@ -75,7 +75,7 @@ def evaluate(env_name: str, agent: str, episodes: int, save_loc: str = "./models
         while not done:
             env.render(mode="human")
             action = agent.get_action(state)
-            obs, reward, done, info, safe = env.step(action)
+            env.step(action)
 
 
 if __name__ == "__main__":

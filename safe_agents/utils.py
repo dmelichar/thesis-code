@@ -72,14 +72,14 @@ def plot_multi_scores(agents: list, scores: list, loc="./results/"):
 
 def plot_multi_safety(agents: list, loc="./results/"):
     widths = [2, 3]
-    heights = [2, 2]
+    heights = [2 for _ in range(len(agents))]
     fig = plt.figure(constrained_layout=True, figsize=(15,8))
-    spec = fig.add_gridspec(ncols=len(agents), nrows=len(agents), width_ratios=widths, height_ratios=heights)
+    spec = fig.add_gridspec(ncols=2, nrows=len(agents), width_ratios=widths, height_ratios=heights)
     agent_v = list(agents.values())
 
     for row in range(len(agents)):
         agent_str = str(list(agents.keys())[row])
-        for col in range(len(agents)):
+        for col in range(2):
             ax = fig.add_subplot(spec[row, col])
             if col == 0:
                 labels = 'unsafe', 'safe'

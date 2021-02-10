@@ -4,7 +4,7 @@ from safe_agents.nn.networks import actor_model
 from safe_agents.nn.networks import critic_model
 
 
-class A2CAgent:
+class A2CAgent(object):
     def __init__(self, env):
         self.env = env
         self.state_size = env.observation_space.shape[0] # minus for safety
@@ -16,11 +16,16 @@ class A2CAgent:
         self.actor = actor_model(self.state_size, self.action_size)
         self.critic = critic_model(self.state_size, self.action_size)
 
+    def _reshape(self, state):
+        return np.reshape(state, [1, self.state_size])
+
     def get_action(self, state):
-        policy = self.actor.predict(state, batch_size=1).flatten()
+        policy = self.actor.predict(self._reshape(state), batch_size=1).flatten()
         return np.random.choice(self.action_size, 1, p=policy)[0]
 
     def update_network(self, state, action, reward, next_state, done):
+        state = self._reshape(state)
+        next_state = self._reshape(next_state)
         target = np.zeros((1, 1))
         advantages = np.zeros((1, self.action_size))
 
@@ -43,18 +48,16 @@ class A2CAgent:
             done = False
             score = 0
             safe_ep = []
-            state = env.reset()
-            state = np.reshape(state, [1, self.state_size])
+            state = self.env.reset()
 
             while not done:
                 if render:
                     self.env.render(mode="human")
 
                 action = self.get_action(state)
-                next_state, reward, done, info = env.step(action)
+                next_state, reward, done, info = self.env.step(action)
                 safe_ep.append(info['status'])
-                next_state = np.reshape(next_state, [1, self.state_size])
-
+                
                 self.update_network(state, action, reward, next_state, done)
 
                 score += reward

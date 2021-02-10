@@ -8,7 +8,7 @@ from safe_agents.nn.networks import dqn_model
 import tensorflow as tf
 
 
-class DQNAgent:
+class DQNAgent(object):
     def __init__(self, env):
         self.env = env
         self.state_size = env.observation_space.shape[0]
@@ -36,11 +36,12 @@ class DQNAgent:
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
 
+
     def get_action(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         else:
-            q_value = self.model.predict(state)
+            q_value = self.model.predict(np.reshape(state, [1, self.state_size]))
             return np.argmax(q_value[0])
 
     def remember(self, state, action, reward, next_state, done):
@@ -88,7 +89,6 @@ class DQNAgent:
             score = 0
             safe_ep = []
             state = self.env.reset()
-            state = np.reshape(state, [1, self.state_size])
 
             while not done:
                 if render:
@@ -98,7 +98,6 @@ class DQNAgent:
                 action = self.get_action(state)
                 next_state, reward, done, info = self.env.step(action)
                 safe_ep.append(info['status'])
-                next_state = np.reshape(next_state, [1, self.state_size])
 
                 self.remember(state, action, reward, next_state, done)
 

@@ -38,14 +38,15 @@ def plot_visuals(agent, scores, safety, loc="./results/"):
     fig.savefig(loc + name + "-Scores.png", dpi=400)
 
     fig, axs = plt.subplots(ncols=1)
-    labels = 'unsafe', 'safe' # 0=unsafe, 1=safe
+    labels = "unsafe", "safe"  # 0=unsafe, 1=safe
     sizes2 = [safety.count(0), safety.count(1)]
-    plt.pie(x=sizes2, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+    plt.pie(x=sizes2, labels=labels, autopct="%1.1f%%", shadow=True, startangle=90)
     plt.savefig(loc + name + "-Safety.png", dpi=400)
+
 
 def plot_multi_scores(agents: list, scores: list, loc="./results/"):
     list_len = len(scores)
-    bins = int(list_len/len(agents))
+    bins = int(list_len / len(agents))
     l = []
     for i in range(len(agents)):
         for j in range(bins):
@@ -54,27 +55,22 @@ def plot_multi_scores(agents: list, scores: list, loc="./results/"):
     for i in range(len(agents)):
         for j in range(bins):
             m.append(j)
-    data = {"episodes": m,
-        "agent": l,
-        "scores": scores}
+    data = {"episodes": m, "agent": l, "scores": scores}
     df = pd.DataFrame.from_dict(data)
     scores = reject_outliers(np.array(scores))
     sns.lmplot(
-        x="episodes",
-        y="scores",
-        data=df,
-        hue="agent",
-        scatter_kws={"s": 10},
-        size=7
+        x="episodes", y="scores", data=df, hue="agent", scatter_kws={"s": 10}, size=7
     )
-    plt.savefig(loc + 'multi' + str(list_len) + '-Scores.png', dpi=400)
+    plt.savefig(loc + "multi" + str(list_len) + "-Scores.png", dpi=400)
 
 
 def plot_multi_safety(agents: list, loc="./results/"):
     widths = [2, 3]
     heights = [2 for _ in range(len(agents))]
-    fig = plt.figure(constrained_layout=True, figsize=(15,8))
-    spec = fig.add_gridspec(ncols=2, nrows=len(agents), width_ratios=widths, height_ratios=heights)
+    fig = plt.figure(constrained_layout=True, figsize=(15, 8))
+    spec = fig.add_gridspec(
+        ncols=2, nrows=len(agents), width_ratios=widths, height_ratios=heights
+    )
     agent_v = list(agents.values())
 
     for row in range(len(agents)):
@@ -82,11 +78,17 @@ def plot_multi_safety(agents: list, loc="./results/"):
         for col in range(2):
             ax = fig.add_subplot(spec[row, col])
             if col == 0:
-                labels = 'unsafe', 'safe'
+                labels = "unsafe", "safe"
                 merged = list(itertools.chain.from_iterable(agent_v[row]))
                 sizes = [merged.count(0), merged.count(1)]
-                ax.pie(x=sizes, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
-                ax.set_title(agent_str + ' safety piechart')
+                ax.pie(
+                    x=sizes,
+                    labels=labels,
+                    autopct="%1.1f%%",
+                    shadow=True,
+                    startangle=90,
+                )
+                ax.set_title(agent_str + " safety piechart")
             if col == 1:
                 s = [(i.count(0), i.count(1)) for i in agent_v[row]]
                 unsafe = [i[0] for i in s]
@@ -94,10 +96,7 @@ def plot_multi_safety(agents: list, loc="./results/"):
                 labels = [str(i) for i in range(len(agent_v[row]))]
                 x = np.arange(len(labels))  # the label locations
                 width = 0.35  # the width of the bars
-                p1 = ax.bar(x - width/2, unsafe, width, label='unsafe')
-                p2 = ax.bar(x - width/2, safe, width, label='safe')
+                p1 = ax.bar(x - width / 2, unsafe, width, label="unsafe")
+                p2 = ax.bar(x - width / 2, safe, width, label="safe")
                 ax.legend()
-                ax.set_title(agent_str + ' time in safe bounds per episode')
-
-    
-    
+                ax.set_title(agent_str + " time in safe bounds per episode")

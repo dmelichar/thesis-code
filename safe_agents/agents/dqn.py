@@ -5,8 +5,6 @@ import datetime
 from collections import deque
 
 from safe_agents.nn.networks import dqn_model
-import tensorflow as tf
-
 
 class DQNAgent(object):
     def __init__(self, env):
@@ -25,7 +23,6 @@ class DQNAgent(object):
         # create replay memory using deque
         self.memory = deque(maxlen=10000)
 
-
         # create main model and target model
         self.model = dqn_model(self.state_size, self.action_size)
         self.target_model = dqn_model(self.state_size, self.action_size)
@@ -35,7 +32,6 @@ class DQNAgent(object):
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
-
 
     def get_action(self, state):
         if np.random.rand() <= self.epsilon:
@@ -79,7 +75,7 @@ class DQNAgent(object):
                 )
 
         self.model.fit(
-                update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
+            update_input, target, batch_size=self.batch_size, epochs=1, verbose=0
         )
 
     def train(self, episodes=1000, render=False):
@@ -87,7 +83,7 @@ class DQNAgent(object):
         for e in range(episodes):
             done = False
             score = 0
-            safe_ep = []
+            status = []
             state = self.env.reset()
 
             while not done:
@@ -97,7 +93,7 @@ class DQNAgent(object):
                 # get action for the current state and go one step in environment
                 action = self.get_action(state)
                 next_state, reward, done, info = self.env.step(action)
-                safe_ep.append(info['status'])
+                status.append(info["status"])
 
                 self.remember(state, action, reward, next_state, done)
 
@@ -109,35 +105,35 @@ class DQNAgent(object):
                     # every episode update the target model to be same with model
                     self.update_target_model()
                     scores.append(score)
+                    safety.append(status)
+                    safe = status.count(1)
+                    unsafe = status.count(0)
+                    risk_rate = 0 if unsafe == 0 else (unsafe / (safe+unsafe))
                     print(
                         f"episode: {e}  | "
                         f"score: {score}  | "
                         f"memory: {len(self.memory)} | "
-                        f"epsilon: {self.epsilon}"
+                        f"epsilon: {self.epsilon} | "
+                        f"risk_rate: {risk_rate} "
                     )
-
-                    # if the mean of scores of last 10 episode is bigger than 490
-                    # stop training
-                    if np.mean(scores[-min(10, len(scores)) :]) > 490:
-                        return
-            safety.append(safe_ep)
         return scores, safety
 
     def save(self, save_loc):
 
         if self.model is not None:
-            self.model.save_weights(f"{save_loc}dqn.h2")
+            self.model.save_weights(f"{save_loc}{self.__name__}.h2")
 
     def load(self, save_loc):
         if self.model is not None:
-            self.model.load_weights(f"{save_loc}dqn.h2")
+            self.model.load_weights(f"{save_loc}{self.__name__}.h2")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import gym
-    env = gym.make('LunarSafe-v0')
+
+    env = gym.make("LunarSafe-v0")
     agent = DQNAgent(env)
-    scores, safety = agent.train(episodes=15)
-    print(scores)
-    print()
-    print(safety)
-    print()
+    scores, safety = agent.train(episodes=10, render=False)
+    print("======================")
+    print(f"total_reward: {sum(scores)}")
+    print(f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}")

@@ -4,4 +4,4 @@ from safe_agents.agents.a2c import A2CAgent
 from safe_agents.agents.a2c_control import A2CControlAgent
 from safe_agents.agents.baseline import BaselineAgent
 
-__all__ = ['DQN', 'A2C', 'DQNControl', 'A2CControl' ,'Baseline']
+__all__ = ["DQN", "A2C", "DQNControl", "A2CControl", "Baseline"]

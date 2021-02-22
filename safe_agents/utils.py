@@ -37,31 +37,24 @@ def plot_visuals(agent, scores, safety, loc="./results/"):
     sns.boxplot(scores, showfliers=False, ax=axs[1])
     fig.savefig(loc + name + "-Scores.png", dpi=400)
 
-    fig, axs = plt.subplots(ncols=1)
-    labels = "unsafe", "safe"  # 0=unsafe, 1=safe
-    sizes2 = [safety.count(0), safety.count(1)]
-    plt.pie(x=sizes2, labels=labels, autopct="%1.1f%%", shadow=True, startangle=90)
+    fig, ax = plt.subplots(ncols=1)
+    risk_rates = []
+    for j in safety:
+        safe = j.count(1)
+        unsafe = j.count(0)
+        r = 0 if unsafe == 0 else (unsafe / (safe+unsafe))
+        risk_rates.append(r)
+    ax.plot(risk_rates)
     plt.savefig(loc + name + "-Safety.png", dpi=400)
 
 
-def plot_multi_scores(agents: list, scores: list, loc="./results/"):
-    list_len = len(scores)
-    bins = int(list_len / len(agents))
-    l = []
-    for i in range(len(agents)):
-        for j in range(bins):
-            l.append(agents[i])
-    m = []
-    for i in range(len(agents)):
-        for j in range(bins):
-            m.append(j)
-    data = {"episodes": m, "agent": l, "scores": scores}
-    df = pd.DataFrame.from_dict(data)
-    scores = reject_outliers(np.array(scores))
-    sns.lmplot(
-        x="episodes", y="scores", data=df, hue="agent", scatter_kws={"s": 10}, size=7
-    )
-    plt.savefig(loc + "multi" + str(list_len) + "-Scores.png", dpi=400)
+def plot_comparisson(agents: list, data, episodes, loc="./results/"):
+    df = pd.concat([pd.DataFrame(d) for d in data])
+    df['episode'] = [i for _ in range(len(agents)) for i in range(episodes)]
+    sns.lmplot(x='episode', y='scores', data=df, hue="agent", scatter_kws={"s": 10}, height=7)
+    plt.savefig(loc + ''.join(agents) + "-Scores.png", dpi=400)
+
+
 
 
 def plot_multi_safety(agents: list, loc="./results/"):

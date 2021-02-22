@@ -1,90 +1,89 @@
 import gym
-from gym import envs
 import safe_agents as sa
-import numpy as np
 import typer
+import inspect
 from pathlib import Path
-import sys
+from typing import List
 
 app = typer.Typer()
+available = [i[0] for i in inspect.getmembers(sa.agents, inspect.isclass)]
 
-
-def setup_env(env):
-    all_envs = envs.registry.all()
-    env_ids = [spec.id for spec in all_envs]
-    if env in env_ids:
-        return gym.make(env)
-    else:
-        typer.echo(f"[info] Unsupported environment. Available {env_ids}")
-        sys.exit(1)
-
+def setup(a, env):
+    if a == 'A2CAgent':
+        return sa.agents.A2CAgent(env)
+    elif a == 'A2CControlAgent':
+        return sa.agents.A2CControlAgent(env)
+    elif a == 'A2CSafeAgent':
+        return sa.agents.A2CSafeAgent(env)
+    elif a == 'BaselineAgent':
+        return sa.agents.BaselineAgent(env)
+    elif a == 'DQNAgent':
+        return sa.agents.DQNAgent(env)
+    elif a == 'DQNControlAgent':
+        return sa.agents.DQNControlAgent(env)
+    elif a == 'DQNSafeAgent':
+        return sa.agents.DQNSafeAgent(env)
 
 @app.command()
-def train(env_name: str, agent: str, episodes: int, save_loc: str = "./models/"):
-    typer.echo(f"[info] Setting up environment {env_name}")
-    Path(save_loc).mkdir(parents=True, exist_ok=True)
-    env = setup_env(env_name)
+def train(
+    agent: List[str] = typer.Option(..., help=f"Any of {str(available)}"),
+    episodes: int = typer.Option(..., help="Number of training episodes"),
+    env_name: str = typer.Option("LunarSafe-v0", help="Environment to run."),
+    save_loc: str = typer.Option("./models/", help="Path to save to after training"),
+    plot_loc: str = typer.Option("./results/", help="Path to save plots to"),
+    compare: bool = typer.Option(False, help="Generate comparission plots")
+):
+    if any(a not in available for a in agent):
+        typer.echo(f"[info] Unsupported agent. Available {str(available)}")
+        raise typer.Abort()
 
-    agents = sa.agents.__all__
-    if agent not in agents:
-        typer.echo(f"[info] Unsupported agent. Available {agents}")
-        sys.exit(1)
-    elif agent == "DQN":
-        agent = sa.agents.DQNAgent(env)
-    elif agent == "DQNControl":
-        agent = sa.agents.DQNControl(env)
-    elif agent == "A2C":
-        agent = sa.agents.A2CAgent(env)
-    elif agent == "A2CControl":
-        agent = sa.agents.A2CControl(env)
-    elif agent == "Baseline":
-        agent = sa.agents.Baseline(env)
-
-    typer.echo(f"[info] {agent} training")
-    scores, safety = agent.train(episodes=episodes)
-    agent.save(save_loc=save_loc)
-    typer.echo(f"[info] Agent saved to {save_loc}")
-    sa.plot_visuals(agent, scores, safety)
+    typer.echo(f"[info] Training {str(agent)} on environment {env_name}")
+    env = gym.make(env_name)
+    agents = [setup(a, env) for a in agent]
+    data = []
+    for a in agents:
+        typer.echo(f"[info] Agent {a} started")
+        scores, safety = a.train(episodes=episodes)
+        data.append({'agent': str(a), 'safety': safety, 'scores': scores})
+        Path(save_loc).mkdir(parents=True, exist_ok=True)
+        a.save(save_loc=save_loc)
+        typer.echo(f"[info] Agent {a} saved to {save_loc}")
+        sa.utils.plot_visuals(a, scores, safety, loc=plot_loc)
+        typer.echo(f"[info] Agent {a} plots saved to {plot_loc}")
+    if compare:
+        typer.echo(f"[info] Comparing performance of {str(agent)}")
+        sa.utils.plot_comparisson(agent, data, episodes, loc=plot_loc)
+        typer.echo(f"[info] Saved to {plot_loc}.")
     typer.echo(f"[info] Finished. Goodbye.")
 
 
 @app.command()
-def evaluate(env_name: str, agent: str, episodes: int, save_loc: str = "./models/"):
-    typer.echo(f"[info] Setting up environment {env_name}")
-    env = setup_env(env_name)
+def evaluate(
+    agent: List[str] = typer.Option(..., help=f"Any of {str(available)}"),
+    episodes: int = typer.Option(..., help="Number of training episodes"),
+    env_name: str = typer.Option("LunarSafe-v0", help="Environment to run."),
+    save_loc: str = typer.Option("./models/", help="Path to save to after training"),
+    compare: bool = False
+):
+    if any(a not in available for a in agent):
+        typer.echo(f"[info] Unsupported agent. Available {str(available)}")
+        raise typer.Abort()
+
+    typer.echo(f"[info] Evaluating {str(agent)} on environment {env_name}")
+    env = gym.make(env_name)
+    agents = [setup(a, env) for a in agent]
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
-
-    agents = sa.agents.__all__
-    if agent not in agents:
-        typer.echo(f"[info] Unsupported agent. Available {agents}")
-        sys.exit(1)
-    elif agent == "DQN":
-        agent = sa.agents.DQNAgent(env)
-        agent.load(save_loc=save_loc)
-    elif agent == "DQNControl":
-        agent = sa.agents.DQNControlAgent(env)
-        agent.load(save_loc=save_loc)
-    elif agent == "A2C":
-        agent = sa.agents.A2CAgent(env)
-        agent.load(save_loc=save_loc)
-    elif agent == "A2CControl":
-        agent = sa.agents.A2CControlAgent(env)
-        agent.load(save_loc=save_loc)
-    elif agent == "Baseline":
-        agent = sa.agents.Baseline(env)
-
-    typer.echo(f"[info] {agent} running")
-    for e in range(episodes):
-        done = False
-        state = env.reset()
-        while not done:
-            env.render(mode="human")
-            action = agent.get_action(state)
-            state, _, done, _ = env.step(action)
-
+    for a in agents:
+        typer.echo(f"[info] Agent {a} started")
+        for e in range(episodes):
+            done = False
+            state = env.reset()
+            while not done:
+                env.render(mode="human")
+                action = a.get_action(state)
+                state, _, done, _ = env.step(action)
     typer.echo(f"[info] Finished. Goodbye.")
-
 
 if __name__ == "__main__":
     app()

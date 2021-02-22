@@ -17,11 +17,29 @@ conda run -n safe_agents pip install -e .
 
 ## Training
 
-To train the model(s) in the paper, run this command:
 
 ```train
-(safe_agents) python scripts/runner.py train ENV_NAME AGENT EPISODES
+(safe_agents) python scripts/runner.py train --help
+Usage: runner.py train [OPTIONS]
+
+Options:
+  --env-name TEXT     Environment to run.  [default: LunarSafe-v0]
+  --agent TEXT        Any of ['DQN', 'A2C', 'DQNControl', 'A2CControl',
+                      'Baseline']  [required]
+
+  --episodes INTEGER  Number of training episodes  [required]
+  --save-loc TEXT     Path to save to after training  [default: ./models/]
+  --help              Show this message and exit.
+
 ```
+
+To train the model(s) in the paper, run these commands:
+
+```train
+(safe_agents) python scripts/runner.py train --agent DQN --episodes 300
+```
+
+
 
 
 ## Evaluation
@@ -29,7 +47,24 @@ To train the model(s) in the paper, run this command:
 To evaluate the model(s), run this command:
 
 ```eval
-(safe_agents) python scripts/runner.py evaluate ENV_NAME AGENT EPISODES
+(safe_agents) python scripts/runner.py evaluate --help
+Usage: runner.py evaluate [OPTIONS]
+
+Options:
+  --env-name TEXT     Environment to run.  [default: LunarSafe-v0]
+  --agent TEXT        Any of ['DQN', 'A2C', 'DQNControl', 'A2CControl',
+                      'Baseline']  [required]
+
+  --episodes INTEGER  Number of evaluation episodes  [required]
+  --load-loc TEXT     Path to load saved agent  [default: ./models/]
+  --help              Show this message and exit.
+
+```
+
+For example:
+
+```train
+(safe_agents) python scripts/runner.py evaluate --agent DQN --episodes 10
 ```
 
 

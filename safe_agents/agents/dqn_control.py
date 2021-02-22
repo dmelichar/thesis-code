@@ -46,7 +46,7 @@ class DQNControlAgent(DQNAgent):
                     unsafe = status.count(0)
                     risk_rate = 0 if unsafe == 0 else unsafe / (safe+unsafe)
                     print(
-                        f"episode: {e}  | "
+                        f"\tepisode: {e}  | "
                         f"score: {score}  | "
                         f"memory: {len(self.memory)} | "
                         f"epsilon: {self.epsilon} | "

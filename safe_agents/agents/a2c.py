@@ -70,7 +70,7 @@ class A2CAgent(object):
                     unsafe = status.count(0)
                     risk_rate = 0 if unsafe == 0 else unsafe / (safe+unsafe)
                     print(
-                        f"episode: {e}  | "
+                        f"\tepisode: {e}  | "
                         f"score: {score}  | "
                         f"risk_rate: {risk_rate} "
                     )
@@ -78,13 +78,16 @@ class A2CAgent(object):
 
     def save(self, save_loc):
         if self.actor is not None and self.critic is not None:
-            self.actor.save_weights(f"{save_loc}{self.__name__}-actor.h2")
-            self.critic.save_weights(f"{save_loc}{self.__name__}-critic.h2")
+            self.actor.save_weights(f"{save_loc}{str(self)}-actor.h2")
+            self.critic.save_weights(f"{save_loc}{str(self)}-critic.h2")
 
-    def load(self, save_loc):
+    def load(self, load_loc):
         if self.actor is not None and self.critic is not None:
-            self.actor.load_weights(f"{save_loc}{self.__name__}-actor.h2")
-            self.critic.load_weights(f"{save_loc}{self.__name__}-actor.h2")
+            self.actor.load_weights(f"{save_loc}{str(self)}-actor.h2")
+            self.critic.load_weights(f"{save_loc}{str(self)}-actor.h2")
+
+    def __str__(self):
+        return self.__class__.__name__
 
 
 if __name__ == "__main__":
@@ -92,7 +95,7 @@ if __name__ == "__main__":
 
     env = gym.make("LunarSafe-v0")
     agent = A2CAgent(env)
-    scores, safety = agent.train(episodes=10, render=True)
+    scores, safety = agent.train(episodes=10, render=False)
     print("======================")
     print(f"total_reward: {sum(scores)}")
     print(f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}")

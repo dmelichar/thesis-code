@@ -44,19 +44,18 @@ class A2CControlAgent(A2CAgent):
                     unsafe = status.count(0)
                     risk_rate = 0 if unsafe == 0 else unsafe / (safe+unsafe)
                     print(
-                        f"episode: {e}  | "
+                        f"\tepisode: {e}  | "
                         f"score: {score}  | "
                         f"risk_rate: {risk_rate} "
                     )
         return scores, safety
-
 
 if __name__ == "__main__":
     import gym
 
     env = gym.make("LunarSafe-v0")
     agent = A2CControlAgent(env)
-    scores, safety = agent.train(episodes=10, render=True)
+    scores, safety = agent.train(episodes=10, render=False)
     print("======================")
     print(f"total_reward: {sum(scores)}")
     print(f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}")

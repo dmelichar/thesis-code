@@ -1,7 +1,7 @@
 from safe_agents.safety.heuristic import controller
 
 
-class BaselineAgent:
+class BaselineAgent(object):
     def __init__(self, env):
         self.env = env
 
@@ -33,10 +33,15 @@ class BaselineAgent:
                     risk_rate = 0 if unsafe == 0 else unsafe / (safe+unsafe)
                     scores.append(score)
                     safety.append(status)
-                    print(f"episode: {e}  | score: {score} | risk ratio: {risk_rate} | safe score: {score-(score*risk_rate)}")
+                    print(f"\tepisode: {e}  | score: {score} | risk ratio: {risk_rate} | safe score: {score-(score*risk_rate)}")
 
         return scores, safety
 
+    def save(self, save_loc):
+        pass
+
+    def save(self, load_loc):
+        pass
 
 if __name__ == "__main__":
     import gym

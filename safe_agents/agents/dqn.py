@@ -110,7 +110,7 @@ class DQNAgent(object):
                     unsafe = status.count(0)
                     risk_rate = 0 if unsafe == 0 else (unsafe / (safe+unsafe))
                     print(
-                        f"episode: {e}  | "
+                        f"\tepisode: {e}  | "
                         f"score: {score}  | "
                         f"memory: {len(self.memory)} | "
                         f"epsilon: {self.epsilon} | "
@@ -121,19 +121,22 @@ class DQNAgent(object):
     def save(self, save_loc):
 
         if self.model is not None:
-            self.model.save_weights(f"{save_loc}{self.__name__}.h2")
+            self.model.save_weights(f"{save_loc}{str(self)}.h2")
 
-    def load(self, save_loc):
+    def load(self, load_loc):
         if self.model is not None:
-            self.model.load_weights(f"{save_loc}{self.__name__}.h2")
+            self.model.load_weights(f"{save_loc}{str(self)}.h2")
+
+    def __str__(self):
+        return self.__class__.__name__
 
 
 if __name__ == "__main__":
     import gym
 
     env = gym.make("LunarSafe-v0")
-    agent = DQNAgent(env)
-    scores, safety = agent.train(episodes=10, render=False)
+    #agent = DQNAgent(env)
+    #scores, safety = agent.train(episodes=10, render=False)
     print("======================")
     print(f"total_reward: {sum(scores)}")
     print(f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}")

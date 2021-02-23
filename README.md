@@ -1,17 +1,16 @@
 # Learning from heuristics to improve safety of Deep Reinforcement Agents
 
-This repository is the official implementation of my [bachelor thesis](https://).
+This repository is the official implementation of my [bachelor thesis](https://gitlab.com/danielmelichar/thesis-doc).
 
 
 ## Requirements
 
-For development I used Python 3.6 and Tensorflow 1.4.
+For development I used Python 3.6 and Tensorflow 1.4 on Conda 4.9.2.
 
 I recommend to use the provided Conda environment config to install all requirements and the package itself.
 
 ```setup
-conda env create -f env.yml -n safe_agents
-conda run -n safe_agents pip install -e .
+./make_env safe_agents
 ```
 
 
@@ -23,17 +22,21 @@ conda run -n safe_agents pip install -e .
 Usage: runner.py train [OPTIONS]
 
 Options:
-  --env-name TEXT     Environment to run.  [default: LunarSafe-v0]
-  --agent TEXT        Any of ['DQN', 'A2C', 'DQNControl', 'A2CControl',
-                      'Baseline']  [required]
+  --agent TEXT              Any of ['A2CAgent', 'A2CControlAgent',
+                            'A2CSafeAgent', 'BaselineAgent', 'DQNAgent',
+                            'DQNControlAgent', 'DQNSafeAgent']  [required]
 
-  --episodes INTEGER  Number of training episodes  [required]
-  --save-loc TEXT     Path to save to after training  [default: ./models/]
-  --help              Show this message and exit.
+  --episodes INTEGER        Number of training episodes  [required]
+  --env-name TEXT           Environment to run.  [default: LunarSafe-v0]
+  --save-loc TEXT           Path to save to after training  [default:
+                            ./models/]
 
+  --plot-loc TEXT           Path to save plots to  [default: ./results/]
+  --compare / --no-compare  Generate comparission plots  [default: False]
+  --help                    Show this message and exit.
 ```
 
-To train the model(s) in the paper, run these commands:
+To train the models in the paper, run these commands:
 
 ```train
 (safe_agents) python scripts/runner.py train --agent DQN --episodes 300
@@ -44,21 +47,24 @@ To train the model(s) in the paper, run these commands:
 
 ## Evaluation
 
-To evaluate the model(s), run this command:
+To evaluate a trained model visually, run this command:
 
 ```eval
 (safe_agents) python scripts/runner.py evaluate --help
 Usage: runner.py evaluate [OPTIONS]
 
 Options:
-  --env-name TEXT     Environment to run.  [default: LunarSafe-v0]
-  --agent TEXT        Any of ['DQN', 'A2C', 'DQNControl', 'A2CControl',
-                      'Baseline']  [required]
+  --agent TEXT              Any of ['A2CAgent', 'A2CControlAgent',
+                            'A2CSafeAgent', 'BaselineAgent', 'DQNAgent',
+                            'DQNControlAgent', 'DQNSafeAgent']  [required]
 
-  --episodes INTEGER  Number of evaluation episodes  [required]
-  --load-loc TEXT     Path to load saved agent  [default: ./models/]
-  --help              Show this message and exit.
+  --episodes INTEGER        Number of training episodes  [required]
+  --env-name TEXT           Environment to run.  [default: LunarSafe-v0]
+  --save-loc TEXT           Path to save to after training  [default:
+                            ./models/]
 
+  --compare / --no-compare  [default: False]
+  --help                    Show this message and exit.
 ```
 
 For example:
@@ -75,15 +81,17 @@ The pretrained models are stored in models. You can use them during evaluation.
 
 ## Results
 
-Our model achieves the following performance on :
+The trained models achieved the following performance:
 
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
 
-| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
-| ------------------ |---------------- | -------------- |
-| My awesome model   |     85%         |      95%       |
-
->📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it.
+| Model name  | Top Score | Minimal Risk |
+| ----------- | --------- | ------------ |
+| DQN         |           |              |
+| DQN Control |           |              |
+| DQN Safe    |           |              |
+| A2C         |           |              |
+| A2C Control |           |              |
+| A2C Safe    |           |              |
 
 
 ## Contributing

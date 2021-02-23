@@ -20,7 +20,7 @@ install_requires = [
 
 setuptools.setup(
     name="safe-agents",
-    version="0.1.0",
+    version="0.99.0",
     description="Implementation of Safe Agents",
     long_description=long_description,
     long_description_content_type="text/markdown",

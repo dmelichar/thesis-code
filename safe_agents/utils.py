@@ -48,48 +48,22 @@ def plot_visuals(agent, scores, safety, loc="./results/"):
     plt.savefig(loc + name + "-Safety.png", dpi=400)
 
 
-def plot_comparisson(agents: list, data, episodes, loc="./results/"):
+def plot_comparisson(data, episodes, loc="./results/"):
     df = pd.concat([pd.DataFrame(d) for d in data])
-    df["episode"] = [i for _ in range(len(agents)) for i in range(episodes)]
+    df["episode"] = [i for _ in range(len(data)) for i in range(episodes)]
+    r = []
+    for i, row in df.iterrows():
+        u = row["unsafe"]
+        s = row["safe"]
+        r.append(0 if u<1 else u/(u+s))
+    df["risk_rate"] = r
+
+    #f, axs = plt.subplots(ncols=2, figsize=(15,5))
     sns.lmplot(
-        x="episode", y="scores", data=df, hue="agent", scatter_kws={"s": 10}, height=7
+       x="episode", y="scores", data=df, hue="agent", scatter_kws={"s": 10}, height=7
     )
-    plt.savefig(loc + "".join(agents) + "-Scores.png", dpi=400)
-
-
-def plot_multi_safety(agents: list, loc="./results/"):
-    widths = [2, 3]
-    heights = [2 for _ in range(len(agents))]
-    fig = plt.figure(constrained_layout=True, figsize=(15, 8))
-    spec = fig.add_gridspec(
-        ncols=2, nrows=len(agents), width_ratios=widths, height_ratios=heights
+    plt.savefig(loc + "".join([i["agent"] for i in data]) + "-Scores.png", dpi=400)
+    sns.lmplot(
+       x="episode", y="risk_rate", data=df, hue="agent", scatter_kws={"s": 10}, height=7
     )
-    agent_v = list(agents.values())
-
-    for row in range(len(agents)):
-        agent_str = str(list(agents.keys())[row])
-        for col in range(2):
-            ax = fig.add_subplot(spec[row, col])
-            if col == 0:
-                labels = "unsafe", "safe"
-                merged = list(itertools.chain.from_iterable(agent_v[row]))
-                sizes = [merged.count(0), merged.count(1)]
-                ax.pie(
-                    x=sizes,
-                    labels=labels,
-                    autopct="%1.1f%%",
-                    shadow=True,
-                    startangle=90,
-                )
-                ax.set_title(agent_str + " safety piechart")
-            if col == 1:
-                s = [(i.count(0), i.count(1)) for i in agent_v[row]]
-                unsafe = [i[0] for i in s]
-                safe = [i[1] for i in s]
-                labels = [str(i) for i in range(len(agent_v[row]))]
-                x = np.arange(len(labels))  # the label locations
-                width = 0.35  # the width of the bars
-                p1 = ax.bar(x - width / 2, unsafe, width, label="unsafe")
-                p2 = ax.bar(x - width / 2, safe, width, label="safe")
-                ax.legend()
-                ax.set_title(agent_str + " time in safe bounds per episode")
+    plt.savefig(loc + "".join([i["agent"] for i in data]) + "-Safety.png", dpi=400)

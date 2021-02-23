@@ -33,17 +33,18 @@ class BaselineAgent(object):
                     risk_rate = 0 if unsafe == 0 else unsafe / (safe + unsafe)
                     scores.append(score)
                     safety.append(status)
-                    print(
-                        f"\tepisode: {e}  | score: {score} | risk ratio: {risk_rate}"
-                    )
+                    print(f"\tepisode: {e}  | score: {score} | risk rate: {risk_rate}")
 
         return scores, safety
 
     def save(self, save_loc):
         pass
 
-    def save(self, load_loc):
+    def load(self, load_loc):
         pass
+
+    def __str__(self):
+        return self.__class__.__name__
 
 
 if __name__ == "__main__":

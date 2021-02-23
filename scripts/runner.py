@@ -42,20 +42,32 @@ def train(
     typer.echo(f"[info] Training {str(agent)} on environment {env_name}")
     env = gym.make(env_name)
     agents = [setup(a, env) for a in agent]
+    if compare:
+        typer.echo(f"[info] Also setting up BaselineAgent for comparission")
+        agents.append(setup("BaselineAgent", env))
     data = []
     for a in agents:
         typer.echo(f"[info] Agent {a} started")
         scores, safety = a.train(episodes=episodes)
-        data.append({"agent": str(a), "safety": safety, "scores": scores})
+        data.append(
+            {
+                "agent": str(a),
+                "safe": [ep.count(1) for ep in safety],
+                "unsafe": [ep.count(0) for ep in safety],
+                "scores": scores,
+            }
+        )
         Path(save_loc).mkdir(parents=True, exist_ok=True)
         a.save(save_loc=save_loc)
         typer.echo(f"[info] Agent {a} saved to {save_loc}")
         sa.utils.plot_visuals(a, scores, safety, loc=plot_loc)
         typer.echo(f"[info] Agent {a} plots saved to {plot_loc}")
     if compare:
-        typer.echo(f"[info] Comparing performance of {str(agent)}")
-        sa.utils.plot_comparisson(agent, data, episodes, loc=plot_loc)
-        typer.echo(f"[info] Saved to {plot_loc}.")
+        typer.echo(
+            f"[info] Comparing performance of {str(agent)} against BaselineAgent"
+        )
+        sa.utils.plot_comparisson(data, episodes, loc=plot_loc)
+        typer.echo(f"[info] Comparission saved to {plot_loc}")
     typer.echo(f"[info] Finished. Goodbye.")
 
 

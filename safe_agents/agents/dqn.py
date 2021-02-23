@@ -6,6 +6,7 @@ from collections import deque
 
 from safe_agents.nn.networks import dqn_model
 
+
 class DQNAgent(object):
     def __init__(self, env):
         self.env = env
@@ -108,7 +109,7 @@ class DQNAgent(object):
                     safety.append(status)
                     safe = status.count(1)
                     unsafe = status.count(0)
-                    risk_rate = 0 if unsafe == 0 else (unsafe / (safe+unsafe))
+                    risk_rate = 0 if unsafe == 0 else (unsafe / (safe + unsafe))
                     print(
                         f"\tepisode: {e}  | "
                         f"score: {score}  | "
@@ -135,8 +136,10 @@ if __name__ == "__main__":
     import gym
 
     env = gym.make("LunarSafe-v0")
-    #agent = DQNAgent(env)
-    #scores, safety = agent.train(episodes=10, render=False)
+    # agent = DQNAgent(env)
+    # scores, safety = agent.train(episodes=10, render=False)
     print("======================")
     print(f"total_reward: {sum(scores)}")
-    print(f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}")
+    print(
+        f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}"
+    )

@@ -42,7 +42,7 @@ def plot_visuals(agent, scores, safety, loc="./results/"):
     for j in safety:
         safe = j.count(1)
         unsafe = j.count(0)
-        r = 0 if unsafe == 0 else (unsafe / (safe+unsafe))
+        r = 0 if unsafe == 0 else (unsafe / (safe + unsafe))
         risk_rates.append(r)
     ax.plot(risk_rates)
     plt.savefig(loc + name + "-Safety.png", dpi=400)
@@ -50,11 +50,11 @@ def plot_visuals(agent, scores, safety, loc="./results/"):
 
 def plot_comparisson(agents: list, data, episodes, loc="./results/"):
     df = pd.concat([pd.DataFrame(d) for d in data])
-    df['episode'] = [i for _ in range(len(agents)) for i in range(episodes)]
-    sns.lmplot(x='episode', y='scores', data=df, hue="agent", scatter_kws={"s": 10}, height=7)
-    plt.savefig(loc + ''.join(agents) + "-Scores.png", dpi=400)
-
-
+    df["episode"] = [i for _ in range(len(agents)) for i in range(episodes)]
+    sns.lmplot(
+        x="episode", y="scores", data=df, hue="agent", scatter_kws={"s": 10}, height=7
+    )
+    plt.savefig(loc + "".join(agents) + "-Scores.png", dpi=400)
 
 
 def plot_multi_safety(agents: list, loc="./results/"):

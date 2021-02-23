@@ -30,10 +30,12 @@ class BaselineAgent(object):
                 if done:
                     safe = status.count(1)
                     unsafe = status.count(0)
-                    risk_rate = 0 if unsafe == 0 else unsafe / (safe+unsafe)
+                    risk_rate = 0 if unsafe == 0 else unsafe / (safe + unsafe)
                     scores.append(score)
                     safety.append(status)
-                    print(f"\tepisode: {e}  | score: {score} | risk ratio: {risk_rate} | safe score: {score-(score*risk_rate)}")
+                    print(
+                        f"\tepisode: {e}  | score: {score} | risk ratio: {risk_rate}"
+                    )
 
         return scores, safety
 
@@ -43,6 +45,7 @@ class BaselineAgent(object):
     def save(self, load_loc):
         pass
 
+
 if __name__ == "__main__":
     import gym
 
@@ -51,4 +54,6 @@ if __name__ == "__main__":
     scores, safety = agent.train(episodes=10, render=True)
     print("======================")
     print(f"total_reward: {sum(scores)}")
-    print(f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}")
+    print(
+        f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}"
+    )

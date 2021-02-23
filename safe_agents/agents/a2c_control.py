@@ -42,13 +42,14 @@ class A2CControlAgent(A2CAgent):
                     safety.append(status)
                     safe = status.count(1)
                     unsafe = status.count(0)
-                    risk_rate = 0 if unsafe == 0 else unsafe / (safe+unsafe)
+                    risk_rate = 0 if unsafe == 0 else unsafe / (safe + unsafe)
                     print(
                         f"\tepisode: {e}  | "
                         f"score: {score}  | "
                         f"risk_rate: {risk_rate} "
                     )
         return scores, safety
+
 
 if __name__ == "__main__":
     import gym
@@ -58,4 +59,6 @@ if __name__ == "__main__":
     scores, safety = agent.train(episodes=10, render=False)
     print("======================")
     print(f"total_reward: {sum(scores)}")
-    print(f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}")
+    print(
+        f"safe_s {sum(x.count(1) for x in safety)} | unsafe_s {sum(x.count(0) for x in safety)}"
+    )

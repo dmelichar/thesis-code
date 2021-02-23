@@ -1,16 +1,15 @@
-
+# fmt: off
 # This gets rid of NumPy FutureWarnings that occur at TF import
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 # This gets rid of TF 2.0 related deprecation warnings
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
 import os
 import sys
 stderr = sys.stderr
-sys.stderr = open(os.devnull, 'w')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+sys.stderr = open(os.devnull, "w")
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam, RMSprop
@@ -18,7 +17,7 @@ from keras import backend as K
 from keras import initializers
 sys.stderr = stderr
 
-# fmt: off
+
 def dqn_model(state_size, action_size, learning_rate=0.0001):
     model = Sequential()
     model.add(Dense(64, input_dim=state_size, activation="relu", kernel_initializer="he_uniform"))

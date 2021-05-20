@@ -1,4 +1,4 @@
-# Learning from heuristics to improve safety of Deep Reinforcement Agents
+# Safety analysis of Deep Reinforcement Learning agents
 
 This repository is the official implementation of my [bachelor thesis](https://gitlab.com/danielmelichar/thesis-doc).
 
